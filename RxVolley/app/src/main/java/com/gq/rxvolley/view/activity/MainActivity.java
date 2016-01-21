@@ -1,34 +1,44 @@
 package com.gq.rxvolley.view.activity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.bumptech.glide.Glide;
+import com.gq.rxvolley.App;
 import com.gq.rxvolley.R;
-import com.kymjs.rxvolley.RxVolley;
+import com.gq.rxvolley.api.JsonObjectPostRequest;
 import com.kymjs.rxvolley.client.HttpParams;
 import com.kymjs.rxvolley.rx.Result;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import pl.droidsonroids.gif.GifImageView;
 import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
     private Observable<Result> observable;
     private Subscription subscription;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +55,20 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
+        List<String> list = new ArrayList<>();
+        for (int i=0;i<10;i++){
+            list.add("http://file6.mafengwo.net/M00/40/87/wKgBt090GMDRpI0TAAca-eb8FtY667.weng.w460.gif");
+            list.add("http://pic.962.net/up/2012-11/2012112609575882766.gif");
+            list.add("http://img4.imgtn.bdimg.com/it/u=2500344646,3349691812&fm=21&gp=0.jpg");
+            list.add("http://img0.imgtn.bdimg.com/it/u=2747206147,3437759991&fm=21&gp=0.jpg");
+            list.add("http://img3.imgtn.bdimg.com/it/u=1827109971,3367997446&fm=21&gp=0.jpg");
+            list.add("http://img2.imgtn.bdimg.com/it/u=443220657,3542202131&fm=21&gp=0.jpg");
+            list.add("http://img3.imgtn.bdimg.com/it/u=1835959688,949753021&fm=21&gp=0.jpg");
+            list.add("http://img4.goumin.com/attachments/photo/0/0/7/1852/474215.gif");
+        }
+        listView = (ListView) findViewById(R.id.listview);
+MyAdapter myAdapter = new MyAdapter(this,list);
+        listView.setAdapter(myAdapter);
         HttpParams params = new HttpParams();
 
 //同之前的设计，传递 http 请求头可以使用 putHeaders()
@@ -86,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                 .callback(callback) //响应回调
                 .encoding("UTF-8") //编码格式，默认为utf-8
                 .doTask();  //执行请求操作*/
-        observable = new RxVolley.Builder().cacheTime(6)
+        /*observable = new RxVolley.Builder().cacheTime(6)
                 .url("http://kymjs.com/feed.xml")
                 .contentType(RxVolley.ContentType.FORM)
                 .getResult();
@@ -114,36 +137,92 @@ public class MainActivity extends AppCompatActivity {
                     public void call(JSONObject s) {
                         Toast.makeText(MainActivity.this, s.toString(), Toast.LENGTH_SHORT).show();
                     }
-                });
+                });*/
+
+        setData();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+
+    private void setData(){
+        Map<String,String> map = new HashMap<>();
+        map.put("start","0");
+        map.put("size","20");
+        map.put("userId","149");
+        map.put("orderby","publishtime");
+        map.put("order","desc");
+        JsonObjectPostRequest jsonObjectPostRequest = new JsonObjectPostRequest("http://115.29.144.109:8080/pom/app/app-server!findReportInfo.action",
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            Toast.makeText(MainActivity.this,response.getString("Cookie"),Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(MainActivity.this,error.getMessage(),Toast.LENGTH_SHORT).show();
+            }
+        },map);
+        jsonObjectPostRequest.setShouldCache(true);
+        App.getRequestQueue(this).add(jsonObjectPostRequest);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (!subscription.isUnsubscribed()) {
+        /*if (!subscription.isUnsubscribed()) {
             subscription.unsubscribe();
+        }*/
+    }
+
+    private class MyAdapter extends BaseAdapter{
+        private LayoutInflater layoutInflater;
+        private Context context;
+        private List<String> list;
+        private ViewHolder viewHolder;
+
+        public MyAdapter(Context context,List<String> list){
+            this.context = context;
+            this.list = list;
+            layoutInflater = LayoutInflater.from(MainActivity.this);
+        }
+        @Override
+        public int getCount() {
+            return list.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return list.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView==null){
+                viewHolder = new ViewHolder();
+                convertView = layoutInflater.inflate(R.layout.layout_aaa,null);
+                viewHolder.gifImageView = (GifImageView) convertView.findViewById(R.id.gifview);
+                convertView.setTag(viewHolder);
+            }else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+            Glide.with(context).load(list.get(position)).centerCrop().placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher).into(viewHolder.gifImageView);
+            return convertView;
+        }
+
+         class ViewHolder {
+            public GifImageView gifImageView;
         }
     }
 }

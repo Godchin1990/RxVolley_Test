@@ -1,7 +1,10 @@
 package com.gq.rxvolley;
 
 import android.app.Application;
+import android.content.Context;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.kymjs.rxvolley.client.HttpParams;
 
 /**
@@ -12,8 +15,13 @@ import com.kymjs.rxvolley.client.HttpParams;
  */
 public class App extends Application{
 
-    private void setHttpParams(){
-        HttpParams httpParams = new HttpParams();
-        httpParams.putHeaders("","");
+    private static RequestQueue requestQueue;
+    private static Context context;
+
+    public synchronized static RequestQueue getRequestQueue(Context context){
+        if (requestQueue==null){
+            requestQueue  = Volley.newRequestQueue(context,50);
+        }
+        return requestQueue;
     }
 }

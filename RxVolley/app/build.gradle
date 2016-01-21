@@ -17,6 +17,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/jni/'] } }
 }
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
     compile 'com.kymjs.rxvolley:rxvolley:1.0.1'
     compile 'com.kymjs.rxvolley:okhttp:1.0.1'
     compile 'com.kymjs.rxvolley:bitmapcore:1.0.2'
-
-
+    compile 'com.mcxiaoke.volley:library:1.0.19'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.11'
+    compile 'com.github.bumptech.glide:glide:3.6.1'
 }
